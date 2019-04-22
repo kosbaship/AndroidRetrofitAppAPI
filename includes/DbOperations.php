@@ -23,7 +23,7 @@
             $this->con = $db->connect();
         }
 
-
+// --------------------------  Rigister and save datata into DB ------------------------------
         // (C) this method to insert a user to our Database
         // go to the database (check the table) and see what is the data u want 
         // to create a user in our cass we need emaill, password, name, school 
@@ -76,6 +76,73 @@
             }
             return USER_EXIST;
         }
+
+// --------------------------  Login and get datata from DB ------------------------------
+
+        // (13) create the login method
+        // and when the user whant to login he needs email and password so we pass them as
+        // a parameters
+        public function userLogin($email, $password){
+            // (13 - A) we will check if there is a user with this email given
+            // and to do this we can use the same method isEmailExist($email)
+            if($this->isEmailExist($email)){
+                // if the email exist we will get the details of the user
+                // (13 - C) we will verify the password we get from the DATABASE
+                // so, Why we need to verify the Password ?
+                // Because we stored it in the database as hash_password
+                // and this prevent us from directly compatre it by using equal opertator
+                // we will user pre defined method password_verify()    
+                // it takes two parameters FIRST is the password and SECOND is Hashed_password
+                $hassed_password = $this->getUserPasswordByEmail($email);
+                // it the passwords matched (the return is true)
+                // we will return password Authenticated else 
+                // password do not match
+                if(password_verify($password, $hassed_password)){
+                    return USER_AUTHENTICATED;
+                } else {
+                    return USER_PASSWORD_DO_NOT_MATCH;
+                }
+                
+            } else {
+                // if the user is not created before    
+                return USER_NOT_FOUND;
+            }
+        }
+
+        // (13 - B) this method will get the password attached with the given email 
+        //          from the DB
+        private function getUserPasswordByEmail($email){
+            $stmt = $this->con->prepare("SELECT password FROM users WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            // we will aslo bind the result
+            $stmt->bind_result($password);
+            // now we will fetch the values from the statment
+            $stmt->fetch();
+            return $password;
+        }
+
+        // (13 - D) this method will get the all  the info attached with the given email 
+        //          from the DB
+        // (step Fourtheen) is in index.php
+        public function getUserByEmail($email){
+            $stmt = $this->con->prepare("SELECT id, email, name, school FROM users WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            // we will aslo bind the result
+            $stmt->bind_result($id, $email, $name, $school);
+            // now we will fetch the values from the statment
+            $stmt->fetch();
+            //create a user and put all the values insid it
+            $user = array();
+            $user ['id'] = $id;
+            $user ['email'] = $email;
+            $user ['name'] = $name;
+            $user ['school'] = $school;
+            return $user;
+        }
+
+
         // (C) 4-this function is to check if the given email is exist or not
         private function isEmailExist($email){
             // here again we need a statment but this time we will check if the email already exist or not

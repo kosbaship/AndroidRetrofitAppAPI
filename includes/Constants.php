@@ -20,8 +20,15 @@ define('DB_NAME', 'kosba_app');
 
 
 // (9) for all the user creation cases (three)
-// we will define a constants 
+//  we will define a constants for the cases we face in the creation (register) process
 // (tenth step) in the DbOperations
 define('USER_CREATED', 101);
 define('USER_EXIST', 102);
 define('USER_FAILURE', 103);
+
+
+// (12) creating the three posibilities when the user tri to login 
+// we will define a constants for the cases we face in the (login) process
+define('USER_AUTHENTICATED', 201);
+define('USER_NOT_FOUND', 202);
+define('USER_PASSWORD_DO_NOT_MATCH', 203);

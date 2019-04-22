@@ -19,10 +19,15 @@ use \Slim\App;
 require '../includes/DbOperations.php';
 
 // this is a new slim app
-$app = new \Slim\App();
-
+// the code inside let slim to represent the error for us
+$app = new \Slim\App([
+    'settings'=>[
+        'displayErrorDetails'=>true
+    ]
+]);
 // (11) frist we will delete all the $app->get()
 // and then we will CREATE the API Call
+// (Step Twelve) is the start of create read operation so go to Constants.php
 /*
     endpoint: createuser
     parameters: email, password, name, school
@@ -38,8 +43,9 @@ $app->post('/createuser', function(Request $request, Response $response){
 // that are requierd or in other word if the condtion is true make a recall 
 //  and aso we should pass the response object as a second parameter
 if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)){
-    // 1- we will get parameter from the request
-    // and too do this we will call a method from the request object
+    // 1- we will get parameter from the request 
+    // that come from the user
+    // and to do this we will call a method from the request object
     // $rquest_data will have all the data we recevied from this request 
     $rquest_data = $request->getParsedBody();
 
@@ -80,7 +86,7 @@ if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)
         // return the response 
         // withStatus(201); this is a HTTP status code that mean the resource is created
         return $response
-                    ->withHeader('content_type', 'application/json')
+                    ->withHeader('Content-type', 'application/json')
                     ->withStatus(201);
 
     }else if($reasult == USER_FAILURE){
@@ -97,13 +103,13 @@ if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)
         // return the response 
         // withStatus(422); this is a HTTP status code that mean the resource is created
         return $response
-                ->withHeader('content_type', 'application/json')
+                ->withHeader('Content-type', 'application/json')
                 ->withStatus(422);
     }else if($reasult == USER_EXIST){
         // create the message response that will appear to the user
         $message = array();
         $message['error'] = true;
-        $message['message'] = 'User Already Existe';
+        $message['message'] = 'User Already Exist';
 
         // put this method in JSON format and to do this we will use the 
         //[ Response $response ] with is the second parameter of the function in the 
@@ -113,7 +119,7 @@ if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)
         // return the response 
         // withStatus(422); this is a HTTP status code that mean the resource is created
         return $response
-                ->withHeader('content_type', 'application/json')
+                ->withHeader('Content-type', 'application/json')
                 ->withStatus(422);
     }
 
@@ -125,9 +131,91 @@ if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)
         // return the response 
         // withStatus(422); this is a HTTP status code that mean the resource is created
         return $response
-                ->withHeader('content_type', 'application/json')
+                ->withHeader('Content-type', 'application/json')
                 ->withStatus(422);
 });
+
+// (14) we will create another API call for the login
+// the endpint: /uselogin
+// thre request method : POST because we will send a data with our request 
+$app->post('/userlogin', function(Request $request, Response $response){
+    // (14 - A) for user login we need email and password
+    // we pass to the array email, passord because they shouldn't be empty in the request
+    // we use ! operator to confirm we do not want to have email and password empty in the request
+    if(!haveEmptyParameters(array('email', 'password'), $response)){
+        // (14 - A - One)now we will get the email and password from the request
+        // that come from the user
+        $rquest_data = $request->getParsedBody();
+         // (14 - A - Two)
+        // we will get all the email, password from the request_data
+        $email = $rquest_data['email'];
+        $password = $rquest_data['password'];
+        // (14 - A - Three) we will call the function user login
+        // do do this we need to creat an instanse from the DbOperations
+        $db = new DbOperations;
+        $result = $db->userLogin($email, $password);
+         
+        // (14 - A - Four) check for this email and password is authenticated or
+        // not found or even thre password do not matsh
+        if ($result == USER_AUTHENTICATED){
+
+            // in this case get the user from the DB
+            $user = $db->getUserByEmail($email);
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = false;
+            $response_data ['message'] = 'Login Successful';
+            $response_data['user ']= $user;
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+
+        } else if ($result == USER_NOT_FOUND){
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = true;
+            $response_data ['message'] = 'User is Not Exist';
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+
+        } else if ($result == USER_PASSWORD_DO_NOT_MATCH){
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = true;
+            $response_data ['message'] = 'The password doesn\'t match ';
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+
+        }
+
+    }
+    // (14 - B ) we return the response of the error code
+        return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(422);
+});
+
+
     // (11) (B) Verify that all the requierd parameters (email, password, name, school) are avilable
     // this will be a separeted method for the validations
     // haveEmptyParameters() this check if the requierd parameter are empty
