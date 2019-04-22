@@ -121,6 +121,34 @@
             $stmt->fetch();
             return $password;
         }
+// --------------------------  get all the data from DB ------------------------------
+        // (15) create function to get all the user in the database
+        // (SIXTEEN step) is the call of this method and it will be a GET call
+        // inside the file index.php
+        public function getAllUsers(){
+            $stmt = $this->con->prepare("SELECT id, email, name, school FROM users;");
+            $stmt->execute();
+            // we will aslo bind the result
+            $stmt->bind_result($id, $email, $name, $school);
+            // now we will fetch the values from the statment while here will keep fetshing the data
+            // until there is no next row to fetch
+            $users = array();
+            while($stmt->fetch()){
+                //create a user (one) and put all the values insid it
+                $user = array();
+                $user ['id'] = $id;
+                $user ['email'] = $email;
+                $user ['name'] = $name;
+                $user ['school'] = $school;
+                // we need to push every single user here into the array of users
+                // it takes two Prameters FIRST is the array I wanna fill
+                // the SECOND is the array elemet that I wanna sort inside the array
+                array_push($users, $user);
+            }
+            return $users;
+        }
+
+
 
         // (13 - D) this method will get the all  the info attached with the given email 
         //          from the DB

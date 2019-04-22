@@ -25,11 +25,12 @@ $app = new \Slim\App([
         'displayErrorDetails'=>true
     ]
 ]);
+// ---------------endpoint: /createuser-----------------------------------
 // (11) frist we will delete all the $app->get()
 // and then we will CREATE the API Call
 // (Step Twelve) is the start of create read operation so go to Constants.php
 /*
-    endpoint: createuser
+    endpoint: /createuser
     parameters: email, password, name, school
     we will use post because this call will create a new record in the database
     method: POST
@@ -134,7 +135,7 @@ if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)
                 ->withHeader('Content-type', 'application/json')
                 ->withStatus(422);
 });
-
+// ---------------endpoint: /uselogin-----------------------------------
 // (14) we will create another API call for the login
 // the endpint: /uselogin
 // thre request method : POST because we will send a data with our request 
@@ -214,8 +215,28 @@ $app->post('/userlogin', function(Request $request, Response $response){
                     ->withHeader('Content-type', 'application/json')
                     ->withStatus(422);
 });
-
-
+// ---------------endpoint: /allusers -----------------------------------
+// (16 ) we will create another API call for Fetching all the users
+// the endpint: /allusers
+// thre request method : GET because we will send a data with our request 
+$app->get('/allusers', function(Request $request, Response $response){
+        // we will call the function getAllUsers
+        // do do this we need to creat an instanse from the DbOperations
+        $db = new DbOperations;
+        $users = $db->getAllUsers();
+        // the response content 
+        $response_data  = array();
+        $response_data ['error'] = false;
+        // the response will be users as we fitsh from the database
+        $response_data ['users'] = $users;
+        // we will use the $response object to write the output in json format
+        $response->write(json_encode($response_data));
+        // last thing is to return the response
+        // code 200 means OK
+        return $response
+                ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+});
     // (11) (B) Verify that all the requierd parameters (email, password, name, school) are avilable
     // this will be a separeted method for the validations
     // haveEmptyParameters() this check if the requierd parameter are empty
