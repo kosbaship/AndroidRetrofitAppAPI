@@ -209,6 +209,24 @@
 
             }
         }
+// --------------------------  Delete a user from the DB ------------------------------
+// (22) create a funtion that delete a user
+// (TwintyThree Step) goooo to index.php and creat the API call
+        public function deleteUser($id){
+            $stmt = $this->con->prepare("DELETE FROM users WHERE id =?");
+            $stmt->bind_param('i', $id);
+            if($stmt->execute())
+                return true;
+            return false;
+
+
+        }
+
+
+
+
+
+
 
         // (C) 4-this function is to check if the given email is exist or not
         private function isEmailExist($email){
