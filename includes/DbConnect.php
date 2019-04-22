@@ -1,7 +1,7 @@
 <?php
-
-    // (4) here we will create a class that will connect with the database
-
+/*
+             (4) here we will create a class that will connect with the database
+*/
     class DbConnect{
         
         // (A) this Variable to store the Connection link
@@ -16,7 +16,6 @@
             //we need to pass __FILE__
             // and also concatenat the file itself that we need
             include_once dirname(__FILE__) . '/Constants.php';
-
 
             // (D) Now here is the actuall connection to the DB
             // 1- we need new MySQL object as a connction link

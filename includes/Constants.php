@@ -17,3 +17,11 @@ define('DB_PASSWORD', '');
 //  ---------------    u have to got to http://localhost/phpmyadmin/ and 
 // create Database with this name (kosba_app) first 
 define('DB_NAME', 'kosba_app');
+
+
+// (9) for all the user creation cases (three)
+// we will define a constants 
+// (tenth step) in the DbOperations
+define('USER_CREATED', 101);
+define('USER_EXIST', 102);
+define('USER_FAILURE', 103);
