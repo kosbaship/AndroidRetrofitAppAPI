@@ -43,7 +43,7 @@ $app->post('/createuser', function(Request $request, Response $response){
 // this if statment condition means if we do NOT have any empty parameters
 // that are requierd or in other word if the condtion is true make a recall 
 //  and aso we should pass the response object as a second parameter
-if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $response)){
+if(!haveEmptyParameters(array('email', 'password', 'name', 'school'), $request, $response)){
     // 1- we will get parameter from the request 
     // that come from the user
     // and to do this we will call a method from the request object
@@ -143,7 +143,7 @@ $app->post('/userlogin', function(Request $request, Response $response){
     // (14 - A) for user login we need email and password
     // we pass to the array email, passord because they shouldn't be empty in the request
     // we use ! operator to confirm we do not want to have email and password empty in the request
-    if(!haveEmptyParameters(array('email', 'password'), $response)){
+    if(!haveEmptyParameters(array('email', 'password'), $request, $response)){
         // (14 - A - One)now we will get the email and password from the request
         // that come from the user
         $rquest_data = $request->getParsedBody();
@@ -217,6 +217,7 @@ $app->post('/userlogin', function(Request $request, Response $response){
 });
 // ---------------endpoint: /allusers -----------------------------------
 // (16 ) we will create another API call for Fetching all the users
+// (Seventeenth Step) will be in DbOperations.php
 // the endpint: /allusers
 // thre request method : GET because we will send a data with our request 
 $app->get('/allusers', function(Request $request, Response $response){
@@ -237,10 +238,80 @@ $app->get('/allusers', function(Request $request, Response $response){
                 ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
 });
+// ---------------endpoint: /allusers -----------------------------------
+// (18) create the API call to update existing user
+// (Ninteenth step) will be a modification inside haveEmptyParameters() Method
+// the endpint: /updateuser/{id} --> the id is for the user that updated
+// the http request : PUT 
+// as we know the first parameter is the end piont but this time the second will be
+// function of three parameters the third param is an array that we will get the ID from 
+$app->put('/updateuser/{id}', function(Request $request, Response $response, array $args){
+    //(18 - A)first we will get the id
+    $id = $aargs['id'];
+    //(18 - B - 1)
+    // if every thing is correct we will do the update
+    if(!haveEmptyParameters(array('email', 'name', 'school', 'id'), $request, $response)){
+        //(18 - C - 1)
+        // we will call a method from the request object getParsedBody() and store in
+        // $rquest_data the data we recevied from this request 
+        $rquest_data = $request->getParsedBody();
+        //(18 - C - 2) we will get all the values from the request_data
+        // values is email, name, school, id
+        $email = $rquest_data['email'];
+        $name = $rquest_data['name'];
+        $school = $rquest_data['school'];
+        $id = $rquest_data['id'];
+        //(18 - C - 3)Create an objet of DbOperations
+        $db = new DbOperations;
+        if ($db->updateUser($email, $name, $school, $id)){
+            // the update is successful so we will create a response data
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = false;
+            $response_data ['message'] = 'User Updated Successfully';
+            // we also fetsh the new user information by using getUserByEmail
+            $user = $db->getUserByEmail($email);
+            // add the info to the response data that we will send back to the user
+            $response_data['user']= $user;
+                    // we will use the $response object to write the output in json format
+                    $response->write(json_encode($response_data));
+
+                    // last thing is to return the response
+                    // code 200 means OK
+                    return $response
+                    ->withHeader('Content-type', 'application/json')
+                    ->withStatus(200);
+        }else{
+            // the update is successful so we will create a response data
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = true;
+            $response_data ['message'] = 'Please Try again Later';
+            // we also fetsh the new user information by using getUserByEmail
+            $user = $db->getUserByEmail($email);
+            // add the info to the response data that we will send back to the user
+            $response_data['user']= $user;
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+                        ->withHeader('Content-type', 'application/json')
+                        ->withStatus(200);
+
+        }
+    }
+    //(18 - B - 2)
+    //else we will return the response like this
+    return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+});
     // (11) (B) Verify that all the requierd parameters (email, password, name, school) are avilable
     // this will be a separeted method for the validations
     // haveEmptyParameters() this check if the requierd parameter are empty
-    function haveEmptyParameters($required_params, $response){
+    function haveEmptyParameters($required_params , $request, $response){
         // 1- initially we will assume the error is false
         // and that mean we have all the parameters and no parameters are empty
         $error = false;
@@ -248,7 +319,13 @@ $app->get('/allusers', function(Request $request, Response $response){
         $error_params = '';
 
         // 3- we will get all the request parameters that we have in our request
-        $request_params = $_REQUEST;
+        // (19) the issu here we are reading the request like this
+        //         $request_params = $_REQUEST;
+        // and this will cause not getting value from PUT request so
+        // we will pass ine more parameter (Request) to this method
+        // adn use it insted super global variable $_REQUEST
+        //          last is tho modify every where I using haveEmptyParameters()    
+        $request_params = $request->getParsedBody();
 
         // 4- NOW Tme to loop through all the request parameters
         //  know that we have all the parameters inside this $params value

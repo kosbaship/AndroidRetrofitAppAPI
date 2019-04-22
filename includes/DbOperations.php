@@ -170,6 +170,15 @@
             return $user;
         }
 
+        //(17) create upade method
+        public function updateUser($email, $name, $school, $id){
+            $stmt = $this->con->prepare("UPDATE users SET email = ?, name = ?, school = ? WHERE id = ?");
+            // the first prameter of the method bind pram is the type S for string i for number or integer
+            $stmt->bind_param("sssi", $email, $name, $school, $id);
+            if($stmt->execute())
+                return true;
+            return false;
+        }
 
         // (C) 4-this function is to check if the given email is exist or not
         private function isEmailExist($email){
