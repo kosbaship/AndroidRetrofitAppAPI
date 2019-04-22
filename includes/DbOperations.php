@@ -93,11 +93,11 @@
                 // and this prevent us from directly compatre it by using equal opertator
                 // we will user pre defined method password_verify()    
                 // it takes two parameters FIRST is the password and SECOND is Hashed_password
-                $hassed_password = $this->getUserPasswordByEmail($email);
+                $hashed_password = $this->getUserPasswordByEmail($email);
                 // it the passwords matched (the return is true)
                 // we will return password Authenticated else 
                 // password do not match
-                if(password_verify($password, $hassed_password)){
+                if(password_verify($password, $hashed_password)){
                     return USER_AUTHENTICATED;
                 } else {
                     return USER_PASSWORD_DO_NOT_MATCH;
@@ -169,8 +169,8 @@
             $user ['school'] = $school;
             return $user;
         }
-
-        //(17) create upade method
+// --------------------------  Update existing user in the DB ------------------------------
+        //(17) create upadete method
         public function updateUser($email, $name, $school, $id){
             $stmt = $this->con->prepare("UPDATE users SET email = ?, name = ?, school = ? WHERE id = ?");
             // the first prameter of the method bind pram is the type S for string i for number or integer
@@ -178,6 +178,36 @@
             if($stmt->execute())
                 return true;
             return false;
+        }
+// --------------------------  Update user password in the DB ------------------------------
+        // (20) Create update Password function
+        public function updatePassword($currentpassword, $newpassword, $email){
+            // (20 - A) get the hashed password from the database
+            $hashed_password = $this->getUserPasswordByEmail($email);
+            // (20 - B) we will verify the password
+            // so, Why we need to verify the Password ?
+            // Because we stored it in the database as hash_password
+            // and this prevent us from directly compatre it by using equal opertator
+            // we will user pre defined method password_verify()    
+            // it takes two parameters FIRST is the password and SECOND is Hashed_password
+            // goooooooooooooooo for (20 - C)   constants.php
+            if(password_verify($currentpassword, $hashed_password)){
+                // (20 - D) complete the if statment
+                // (Twentyone step) go index.php
+                // Generate hashpassword for the NEWPASSWORD
+                $hash_password = password_hash($newpassword, PASSWORD_DEFAULT);
+
+                $stmt = $this->con->prepare("UPDATE users SET password = ? WHERE email = ?");
+                $stmt->bind_param('ss', $hash_password, $email);
+                if($stmt->execute())
+                    return PASSWORD_CHANGED;
+                return PASSWORD_NOT_CHANGED;
+
+            } else{
+
+            return PASSWORD_DO_MATCH;
+
+            }
         }
 
         // (C) 4-this function is to check if the given email is exist or not

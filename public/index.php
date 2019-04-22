@@ -238,7 +238,7 @@ $app->get('/allusers', function(Request $request, Response $response){
                 ->withHeader('Content-type', 'application/json')
                 ->withStatus(200);
 });
-// ---------------endpoint: /allusers -----------------------------------
+// ---------------endpoint: //updateuser/{id} -----------------------------------
 // (18) create the API call to update existing user
 // (Ninteenth step) will be a modification inside haveEmptyParameters() Method
 // the endpint: /updateuser/{id} --> the id is for the user that updated
@@ -250,7 +250,7 @@ $app->put('/updateuser/{id}', function(Request $request, Response $response, arr
     $id = $aargs['id'];
     //(18 - B - 1)
     // if every thing is correct we will do the update
-    if(!haveEmptyParameters(array('email', 'name', 'school', 'id'), $request, $response)){
+    if(!haveEmptyParameters(array('email', 'name', 'school'), $request, $response)){
         //(18 - C - 1)
         // we will call a method from the request object getParsedBody() and store in
         // $rquest_data the data we recevied from this request 
@@ -260,7 +260,7 @@ $app->put('/updateuser/{id}', function(Request $request, Response $response, arr
         $email = $rquest_data['email'];
         $name = $rquest_data['name'];
         $school = $rquest_data['school'];
-        $id = $rquest_data['id'];
+        //$id = $rquest_data['id'];
         //(18 - C - 3)Create an objet of DbOperations
         $db = new DbOperations;
         if ($db->updateUser($email, $name, $school, $id)){
@@ -308,6 +308,86 @@ $app->put('/updateuser/{id}', function(Request $request, Response $response, arr
             ->withHeader('Content-type', 'application/json')
             ->withStatus(200);
 });
+
+// ---------------endpoint: //updatepassword -----------------------------------
+// (21) create the API call to update existing user
+// (Ninteenth step) will be a modification inside haveEmptyParameters() Method
+// the endpint: /updatepassword --> the id is for the user that updated
+// the http request : PUT 
+// as we know the first parameter is the end piont but this time the second will be
+// function of three parameters the third param is an array that we will get the ID from 
+$app->put('/updatepassword', function(Request $request, Response $response){
+    // (21 - A - 1) Check the requierd Parameters
+    // if every thing is correct we will do the update
+    if(!haveEmptyParameters(array('currentpassword', 'newpassword', 'email'), $request, $response)){
+        // to change the password we need to get the parameters
+        // this is the content comming from the user
+        $request_data = $request->getParsedBody();
+
+        //get current password
+        $currentpassword = $request_data['currentpassword'];
+        $newpassword = $request_data['newpassword'];
+        $email = $request_data["email"];
+
+        // we will call the function user login
+        // do do this we need to creat an instanse from the DbOperations
+        $db = new DbOperations;
+        $result = $db->updatePassword($currentpassword, $newpassword, $email);
+
+        if($result == PASSWORD_CHANGED){
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = false;
+            $response_data ['message'] = 'Password Changed';
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+                ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+        } else if($result == PASSWORD_DO_MATCH){
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = true;
+            $response_data ['message'] = 'Password Do NOT Match';
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+                ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+        }else if($result == PASSWORD_NOT_CHANGED){
+            // this is the formate of the response
+            $response_data  = array();
+            $response_data ['error'] = true;
+            $response_data ['message'] = 'Password not Changed try again';
+
+            // we will use the $response object to write the output in json format
+            $response->write(json_encode($response_data));
+
+            // last thing is to return the response
+            // code 200 means OK
+            return $response
+                ->withHeader('Content-type', 'application/json')
+                ->withStatus(200);
+        }
+    } 
+
+
+    //(21 - A - 2)
+    //else we will return the response like this
+    return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(422);
+
+});
+
     // (11) (B) Verify that all the requierd parameters (email, password, name, school) are avilable
     // this will be a separeted method for the validations
     // haveEmptyParameters() this check if the requierd parameter are empty
@@ -324,7 +404,8 @@ $app->put('/updateuser/{id}', function(Request $request, Response $response, arr
         // and this will cause not getting value from PUT request so
         // we will pass ine more parameter (Request) to this method
         // adn use it insted super global variable $_REQUEST
-        //          last is tho modify every where I using haveEmptyParameters()    
+        //          last is tho modify every where I using haveEmptyParameters()   
+        // (next Step twinthy) will be in DbOperations.php 
         $request_params = $request->getParsedBody();
 
         // 4- NOW Tme to loop through all the request parameters
